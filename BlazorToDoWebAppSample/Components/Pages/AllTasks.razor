@@ -1,5 +1,9 @@
 ﻿@page "/tasks"
+@using BlazorToDoWebAppSample.Components.Data
+@using BlazorToDoWebAppSample.Components.Controllers
+@using Microsoft.EntityFrameworkCore
 @attribute [StreamRendering]
+@inject IDbContextFactory<BlazorToDoWebAppSampleDbContext> DbFactory
 
 <PageTitle>All Tasks</PageTitle>
 
@@ -14,18 +18,20 @@ else
     <table class="table">
         <thead>
             <tr>
-                <th>Summary</th>
-                <th>Due Date</th>
-                <th>Created at</th>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>IsCompleted</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var task in tasks)
             {
                 <tr>
-                    <td>@task.Summary</td>
-                    <td>@task.DueDate</td>
-                    <td>@task.CreatedAt</td>
+                    <td>@task.Id</td>
+                    <td>@task.Title</td>
+                    <td>@task.Description</td>
+                    <td>@task.IsCompleted</td>
                 </tr>
             }
         </tbody>
@@ -33,31 +39,30 @@ else
 }
 
 @code {
-    private TodoTask[]? tasks = null;
+    private Models.TodoTask[]? tasks = null;
+    private TodoTasksController? todoTasksController;
 
     protected override async Task OnInitializedAsync()
     {
-        // Simulate asynchronous loading to demonstrate streaming rendering
-        await Task.Delay(500);
-        
-        var createdDateTime = DateTime.Now;
-        var dueDate = DateOnly.FromDateTime(createdDateTime).AddDays(1);
-        var summaries = new[] {
-            "First Task: This is first todo task.",
-            "Second Task: This is second todo task.",
-        };
-        tasks = Enumerable.Range(0, summaries.Length).Select(index => new TodoTask
-        {
-                Summary = summaries[index],
-                DueDate = dueDate,
-                CreatedAt = createdDateTime,
-        }).ToArray();
-    }
+        todoTasksController = new TodoTasksController(DbFactory);
+        await todoTasksController.DeleteAllTodoTasksAsync();
 
-    private class TodoTask
-    {
-        public string? Summary { get; set; }
-        public DateOnly DueDate { get; set; }
-        public DateTime CreatedAt { get; set; }
+        await todoTasksController.AddTodoTaskAsync(new Models.TodoTask
+            {
+                Id = 1,
+                Title = "First Task",
+                Description = "This is first todo task.",
+                IsCompleted = false,
+            });
+        await todoTasksController.AddTodoTaskAsync(new Models.TodoTask
+            {
+                Id = 2,
+                Title = "Second Task",
+                Description = "This is second todo task.",
+                IsCompleted = false,
+            });
+        tasks = (await todoTasksController.GetAllTodoTasksAsync()).ToArray();
+
+        await base.OnInitializedAsync();
     }
 }
