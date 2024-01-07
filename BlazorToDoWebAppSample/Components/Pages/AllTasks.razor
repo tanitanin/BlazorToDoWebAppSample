@@ -1,0 +1,63 @@
+﻿@page "/tasks"
+@attribute [StreamRendering]
+
+<PageTitle>All Tasks</PageTitle>
+
+<h3>All Tasks</h3>
+
+@if (tasks == null || tasks.Length == 0)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Summary</th>
+                <th>Due Date</th>
+                <th>Created at</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var task in tasks)
+            {
+                <tr>
+                    <td>@task.Summary</td>
+                    <td>@task.DueDate</td>
+                    <td>@task.CreatedAt</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private TodoTask[]? tasks = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate asynchronous loading to demonstrate streaming rendering
+        await Task.Delay(500);
+        
+        var createdDateTime = DateTime.Now;
+        var dueDate = DateOnly.FromDateTime(createdDateTime).AddDays(1);
+        var summaries = new[] {
+            "First Task: This is first todo task.",
+            "Second Task: This is second todo task.",
+        };
+        tasks = Enumerable.Range(0, summaries.Length).Select(index => new TodoTask
+        {
+                Summary = summaries[index],
+                DueDate = dueDate,
+                CreatedAt = createdDateTime,
+        }).ToArray();
+    }
+
+    private class TodoTask
+    {
+        public string? Summary { get; set; }
+        public DateOnly DueDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+}
