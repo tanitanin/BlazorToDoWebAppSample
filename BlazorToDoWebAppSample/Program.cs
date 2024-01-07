@@ -1,6 +1,22 @@
-using BlazorToDoWebAppSample.Components;
+﻿using BlazorToDoWebAppSample.Components;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using BlazorToDoWebAppSample.Components.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add database context factory.
+//builder.Services.AddDbContext<BlazorToDoWebAppSampleDbContext>(options =>
+//    options.UseSqlite(builder.Configuration.GetConnectionString("BlazorToDoWebAppSampleDbContext")
+//    ?? throw new InvalidOperationException("Connection string 'BlazorToDoWebAppSampleDbContext' not found.")));
+#if DEBUG
+builder.Services.AddDbContextFactory<BlazorToDoWebAppSampleDbContext>(opt =>
+    opt.UseSqlite($"Data Source={BlazorToDoWebAppSampleDbContext.DbName}.db")
+    .EnableSensitiveDataLogging());
+#else
+builder.Services.AddDbContextFactory<BlazorToDoWebAppSampleDbContext>(opt =>
+    opt.UseSqlite($"Data Source={BlazorToDoWebAppSampleDbContext.DbName}.db")
+#endif
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
